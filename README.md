@@ -17,3 +17,5 @@ https://jasjam294.github.io/BlackJack/
 - Win/Loss/Tie tracking
 - Win streak badge
 
+
+##Bonus - Python Terminal play
