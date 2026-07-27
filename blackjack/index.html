@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --felt: #1a3a2a;
+            --felt-light: #1f4733;
+            --felt-border: #2d5c40;
+            --gold: #c9a84c;
+            --gold-light: #e8c96a;
+            --cream: #f5edd6;
+            --card-bg: #fafaf5;
+            --text-dark: #1a1a1a;
+            --red: #c0392b;
+            --shadow: rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: radial-gradient(ellipse at center, #0d2016 0%, #060e0a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Crimson Pro', Georgia, serif;
+            color: var(--cream);
+            padding: 20px;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            color: var(--gold);
+            text-align: center;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-shadow: 0 2px 20px rgba(201, 168, 76, 0.4);
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-style: italic;
+            font-size: 1rem;
+            color: rgba(245, 237, 214, 0.5);
+            letter-spacing: 0.2em;
+            margin-bottom: 28px;
+        }
+
+        .table {
+            background: radial-gradient(ellipse at center, var(--felt-light) 0%, var(--felt) 70%, #122a1c 100%);
+            border: 4px solid var(--felt-border);
+            border-radius: 180px;
+            box-shadow:
+                0 0 0 6px #0a1e11,
+                0 0 0 10px var(--gold),
+                0 0 40px rgba(0, 0, 0, 0.8),
+                inset 0 0 60px rgba(0, 0, 0, 0.3);
+            padding: 40px 50px;
+            max-width: 760px;
+            width: 100%;
+            min-height: 480px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+        }
+
+        .area-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: rgba(245, 237, 214, 0.35);
+            margin-bottom: 6px;
+        }
+
+        .zone {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .divider {
+            width: 80%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--felt-border), transparent);
+            margin: 4px 0;
+        }
+
+        /* Cards */
+        .hand {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            min-height: 80px;
+            align-items: center;
+        }
+
+        .card {
+            width: 58px;
+            height: 82px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px 6px;
+            box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-dark);
+            animation: dealCard 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+            position: relative;
+            cursor: default;
+            user-select: none;
+        }
+
+        @keyframes dealCard {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.7) rotate(-5deg);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0deg);
+            }
+        }
+
+        .card.red {
+            color: var(--red);
+        }
+
+        .card-corner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1;
+        }
+
+        .card-corner .rank {
+            font-size: 1rem;
+        }
+
+        .card-corner .suit {
+            font-size: 0.7rem;
+        }
+
+        .card-corner.bottom {
+            transform: rotate(180deg);
+        }
+
+        .card-center {
+            font-size: 1.8rem;
+            line-height: 1;
+        }
+
+        .card-back {
+            background: repeating-linear-gradient(45deg,
+                    #1a3f8f 0px, #1a3f8f 4px,
+                    #1e4aab 4px, #1e4aab 8px);
+            border: 2px solid #fff;
+        }
+
+        .card-hidden-label {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 1.5rem;
+        }
+
+        /* Score badge */
+        .score {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.85rem;
+            color: var(--gold-light);
+            letter-spacing: 0.1em;
+            margin-top: 5px;
+        }
+
+        /* Status message */
+        .status {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.1rem, 3vw, 1.5rem);
+            text-align: center;
+            min-height: 40px;
+            color: var(--cream);
+            transition: all 0.3s;
+        }
+
+        .status.win {
+            color: var(--gold-light);
+            text-shadow: 0 0 20px rgba(232, 201, 106, 0.6);
+        }
+
+        .status.lose {
+            color: #e74c3c;
+        }
+
+        .status.push {
+            color: #7fb3ff;
+        }
+
+        /* Buttons */
+        .controls {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 6px;
+        }
+
+        button {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.95rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: 10px 28px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        button:hover::after {
+            opacity: 1;
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        button:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-hit {
+            background: linear-gradient(135deg, #2e7d32, #1b5e20);
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4), 0 0 0 1px #4caf50;
+        }
+
+        .btn-stay {
+            background: linear-gradient(135deg, #b71c1c, #7f0000);
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4), 0 0 0 1px #ef5350;
+        }
+
+        .btn-deal {
+            background: linear-gradient(135deg, var(--gold), #a07830);
+            color: #1a1a1a;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--gold-light);
+            font-weight: 700;
+        }
+
+        /* Chip tally */
+        .chips-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 0.85rem;
+            color: rgba(245, 237, 214, 0.6);
+            letter-spacing: 0.1em;
+        }
+
+        .chips-val {
+            font-family: 'Playfair Display', serif;
+            color: var(--gold-light);
+            font-size: 1rem;
+        }
+
+        .streak-badge {
+            font-size: 0.75rem;
+            background: rgba(201, 168, 76, 0.15);
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            border-radius: 20px;
+            padding: 2px 10px;
+            color: var(--gold);
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>♠ Blackjack ♣</h1>
+    <p class="subtitle">House rules apply &bull; Good luck</p>
+
+    <div class="table">
+
+        <!-- Dealer zone -->
+        <div class="zone">
+            <div class="area-label">Dealer</div>
+            <div class="hand" id="dealer-hand"></div>
+            <div class="score" id="dealer-score"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Status -->
+        <div class="status" id="status">Press Deal to begin.</div>
+
+        <div class="divider"></div>
+
+        <!-- Player zone -->
+        <div class="zone">
+            <div class="area-label">Player</div>
+            <div class="hand" id="player-hand"></div>
+            <div class="score" id="player-score"></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn-hit" id="btn-hit" disabled onclick="hit()">Hit</button>
+            <button class="btn-stay" id="btn-stay" disabled onclick="stay()">Stay</button>
+            <button class="btn-deal" id="btn-deal" onclick="startGame()">Deal</button>
+        </div>
+
+        <!-- Stats bar -->
+        <div class="chips-bar">
+            <span>Wins: <span class="chips-val" id="stat-wins">0</span></span>
+            <span>Losses: <span class="chips-val" id="stat-losses">0</span></span>
+            <span>Ties: <span class="chips-val" id="stat-ties">0</span></span>
+            <span id="streak-label" class="streak-badge" style="display:none"></span>
+        </div>
+
+    </div>
+
+    <script>
+        const DECK = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        const SUITS = ['♠', '♥', '♦', '♣'];
+        const RED_SUITS = new Set(['♥', '♦']);
+
+        let player = [], dealer = [], gameOver = false;
+        let wins = 0, losses = 0, ties = 0, streak = 0, streakType = '';
+
+        function deal() {
+            return { rank: DECK[Math.floor(Math.random() * DECK.length)], suit: SUITS[Math.floor(Math.random() * SUITS.length)] };
+        }
+
+        function cardValue(card) {
+            if (['J', 'Q', 'K'].includes(card.rank)) return 10;
+            if (card.rank === 'A') return 1;
+            return parseInt(card.rank);
+        }
+
+        function handTotal(hand) {
+            let total = hand.reduce((s, c) => s + cardValue(c), 0);
+            if (hand.some(c => c.rank === 'A') && total + 10 <= 21) total += 10;
+            return total;
+        }
+
+        function isBlackjack(hand) {
+            if (hand.length !== 2) return false;
+            const vals = hand.map(c => c.rank);
+            const tens = new Set(['10', 'J', 'Q', 'K']);
+            return (vals[0] === 'A' && tens.has(vals[1])) || (vals[1] === 'A' && tens.has(vals[0]));
+        }
+
+        function cardHTML(card, hidden = false, delay = 0) {
+            if (hidden) {
+                return `<div class="card card-back" style="animation-delay:${delay}ms">
+        <span class="card-hidden-label">?</span>
+      </div>`;
+            }
+            const isRed = RED_SUITS.has(card.suit);
+            const cls = isRed ? 'card red' : 'card';
+            return `<div class="${cls}" style="animation-delay:${delay}ms">
+      <div class="card-corner top"><div class="rank">${card.rank}</div><div class="suit">${card.suit}</div></div>
+      <div class="card-center">${card.suit}</div>
+      <div class="card-corner bottom"><div class="rank">${card.rank}</div><div class="suit">${card.suit}</div></div>
+    </div>`;
+        }
+
+        function renderHands(hideDealer = true) {
+            const dh = document.getElementById('dealer-hand');
+            const ph = document.getElementById('player-hand');
+            const ds = document.getElementById('dealer-score');
+            const ps = document.getElementById('player-score');
+
+            dh.innerHTML = dealer.map((c, i) =>
+                (i === 1 && hideDealer) ? cardHTML(c, true, i * 100) : cardHTML(c, false, i * 100)
+            ).join('');
+
+            ph.innerHTML = player.map((c, i) => cardHTML(c, false, i * 100)).join('');
+
+            if (hideDealer) {
+                ds.textContent = `Showing: ${cardValue(dealer[0])}`;
+            } else {
+                ds.textContent = `Total: ${handTotal(dealer)}`;
+            }
+            ps.textContent = `Total: ${handTotal(player)}`;
+        }
+
+        function setStatus(msg, cls = '') {
+            const el = document.getElementById('status');
+            el.textContent = msg;
+            el.className = 'status ' + cls;
+        }
+
+        function setButtons(playing) {
+            document.getElementById('btn-hit').disabled = !playing;
+            document.getElementById('btn-stay').disabled = !playing;
+            document.getElementById('btn-deal').disabled = playing;
+        }
+
+        function updateStats() {
+            document.getElementById('stat-wins').textContent = wins;
+            document.getElementById('stat-losses').textContent = losses;
+            document.getElementById('stat-ties').textContent = ties;
+            const lbl = document.getElementById('streak-label');
+            if (Math.abs(streak) >= 2) {
+                lbl.style.display = '';
+                lbl.textContent = streak > 0 ? `🔥 ${streak} win streak` : `❄️ ${Math.abs(streak)} loss streak`;
+            } else {
+                lbl.style.display = 'none';
+            }
+        }
+
+        function recordResult(type) {
+            if (type === 'win') { wins++; if (streakType === 'win') streak++; else { streakType = 'win'; streak = 1; } }
+            else if (type === 'lose') { losses++; if (streakType === 'lose') streak--; else { streakType = 'lose'; streak = -1; } }
+            else { ties++; streak = 0; streakType = ''; }
+            updateStats();
+        }
+
+        function startGame() {
+            player = [deal(), deal()];
+            dealer = [deal(), deal()];
+            gameOver = false;
+            renderHands(true);
+            setButtons(true);
+
+            if (isBlackjack(player)) {
+                endGame('blackjack');
+                return;
+            }
+            setStatus('Hit or Stay?');
+        }
+
+        function hit() {
+            if (gameOver) return;
+            player.push(deal());
+            renderHands(true);
+            if (handTotal(player) > 21) {
+                endGame('bust');
+            } else if (handTotal(player) === 21) {
+                stay();
+            }
+        }
+
+        function stay() {
+            if (gameOver) return;
+            setButtons(false);
+            runDealer();
+        }
+
+        function runDealer() {
+            renderHands(false);
+            const step = () => {
+                if (handTotal(dealer) < 17) {
+                    dealer.push(deal());
+                    renderHands(false);
+                    setTimeout(step, 500);
+                } else {
+                    resolveGame();
+                }
+            };
+            setTimeout(step, 400);
+        }
+
+        function endGame(reason) {
+            gameOver = true;
+            setButtons(false);
+            renderHands(false);
+            if (reason === 'blackjack') {
+                setStatus('♠ Blackjack! You win! ♠', 'win');
+                recordResult('win');
+            } else if (reason === 'bust') {
+                setStatus('Bust! Dealer wins.', 'lose');
+                recordResult('lose');
+            }
+        }
+
+        function resolveGame() {
+            gameOver = true;
+            const p = handTotal(player), d = handTotal(dealer);
+            if (d > 21 || p > d) {
+                setStatus('You win! 🎉', 'win');
+                recordResult('win');
+            } else if (p < d) {
+                setStatus('Dealer wins.', 'lose');
+                recordResult('lose');
+            } else {
+                setStatus("It's a push.", 'push');
+                recordResult('tie');
+            }
+        }
+
+        updateStats();
+    </script>
+</body>
+
+</html>
