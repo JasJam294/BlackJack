@@ -1,0 +1,39 @@
+.fetchbtn {
+
+  font-family: Fredoka;
+  background-color: lightcoral;
+  border-color: rgb(121, 58, 58);
+  cursor: pointer;
+}
+
+.fetchbtn:active {
+  background-color: rgb(163, 86, 86);
+}
+
+.status {
+  font-family: Fredoka;
+  font-size: 20px;
+}
+
+.inputpokemon {
+  font-family: Fredoka;
+  padding-right: 50px;
+}
+
+.pokemonsprite {
+  width: 300px;
+  animation: bob .5s infinite;
+}
+
+
+@keyframes bob {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
